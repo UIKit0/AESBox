@@ -126,16 +126,18 @@
 - (void)createFolderWithName:(NSString*)name
 {
     name = [NSString stringWithFormat: @"==%@", [AESCrypt encrypt:name password:_password]];
-
+    name = [name stringByReplacingOccurrencesOfString:@"/" withString:@"_"];
     NSString * path = [[_displayedURL path] stringByAppendingPathComponent: name];
-    [[NSFileManager defaultManager] createDirectoryAtPath:path withIntermediateDirectories:NO attributes:NULL error:nil];
+    [[NSFileManager defaultManager] createDirectoryAtPath:path withIntermediateDirectories:YES attributes:NULL error:nil];
     [self updateOutlineView];
 }
 
 - (NSString*)nameForFolder:(NSString*)name
 {
-    if ([name hasPrefix: @"=="] && _password)
+    if ([name hasPrefix: @"=="] && _password) {
+        name = [name stringByReplacingOccurrencesOfString:@"_" withString:@"/"];
         name = [AESCrypt decrypt:[name substringFromIndex: 2] password:_password];
+    }
     return name;
 }
 
@@ -379,6 +381,12 @@
 - (void)imageBrowserSelectionDidChange:(IKImageBrowserView *) aBrowser
 {
     
+}
+
+- (void)imageBrowser:(IKImageBrowserView *) aBrowser cellWasRightClickedAtIndex:(NSUInteger) index withEvent:(NSEvent *) event
+{
+    NSURL * url = [[_photos objectAtIndex: index] URL];
+    [[NSWorkspace sharedWorkspace] selectFile:[url path] inFileViewerRootedAtPath:nil];
 }
 
 - (void)imageBrowser:(IKImageBrowserView *) aBrowser cellWasDoubleClickedAtIndex:(NSUInteger) index
